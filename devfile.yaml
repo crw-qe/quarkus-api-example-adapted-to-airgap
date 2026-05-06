@@ -44,13 +44,20 @@ components:
   - name: m2
     volume:
       size: 1G
+projects:
+  - name: quarkus-api-example-adapted-to-airgap
+    git:
+      remotes:
+        origin: https://github.com/crw-qe/quarkus-api-example-adapted-to-airgap.git
+      checkoutFrom:
+        revision: main
 commands:
   - id: package
     exec:
       label: "Package"
       component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
-      commandLine: "./mvnw clean package -DskipTests=true"
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example-adapted-to-airgap
+      commandLine: "mvn clean package -DskipTests=true"
       group:
         kind: build
         isDefault: true
@@ -58,24 +65,24 @@ commands:
     exec:
       label: "Run Tests"
       component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
-      commandLine: "./mvnw test"
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example-adapted-to-airgap
+      commandLine: "mvn test"
       group:
         kind: test
   - id: packagenative
     exec:
       label: "Package Native"
       component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
-      commandLine: "./mvnw package -Dnative -Dmaven.test.skip -Dquarkus.native.native-image-xmx=3G"
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example-adapted-to-airgap
+      commandLine: "mvn package -Dnative -Dmaven.test.skip -Dquarkus.native.native-image-xmx=3G"
       group:
         kind: build
   - id: startdev
     exec:
       label: "Start Development mode (Hot reload + debug)"
       component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
-      commandLine: "./mvnw compile quarkus:dev"
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example-adapted-to-airgap
+      commandLine: "mvn compile quarkus:dev"
       group:
         kind: run
         isDefault: true
@@ -83,7 +90,7 @@ commands:
     exec:
       label: "Start Native"
       component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-api-example/target
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example-adapted-to-airgap/target
       commandLine: "./quarkus-api-example-1.0.0-SNAPSHOT-runner"
       group:
         kind: run
@@ -99,10 +106,19 @@ commands:
     exec:
       label: "Deploy Postrgres"
       component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example-adapted-to-airgap
       commandLine: "oc new-app -e POSTGRESQL_USER=user -e POSTGRESQL_PASSWORD=password -e POSTGRESQL_DATABASE=food_db postgresql:10-el7 -n demo"
       group:
         kind: test
+  - id: init-java-truststore
+    exec:
+      label: "Init Java truststore"
+      component: tools
+      workingDir: /home/user
+      commandLine: "bash init-java-truststore.sh"
+      group:
+        kind: build
 events:
   postStart:
+    - init-java-truststore
     - package
